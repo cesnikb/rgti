@@ -475,7 +475,6 @@ function drawScene() {
   
   // draw bullet 
   if (fire) {
-    //console.log("FIRE");
     mvPopMatrix();
     mvPushMatrix();
 
@@ -526,14 +525,11 @@ function drawOBJ(obj,texture){
   gl.drawElements(gl.TRIANGLES, obj.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 }
 
-
-
 //
 // animate
 //
 // Called every time before redeawing the screen.
 //
-
 
 function animate() {
 
@@ -564,7 +560,6 @@ function animate() {
     collision = io.detectCollision(bodysMY[1]);																			// | ker sva sla iz 45stopinj na 60stopinj, je zdaj player & bullet po Z osi transliran drugače,
     if(collision != null){																								// | zato: [namest -1.5 je +6 --> 6-(-1.5)=7.5 --> tu popravimo Z position za 7.5] 
       if (speedForward != 0 && speedSide != 0) {																		// ---------------------------------------------------------------------------------------------
-
         zPosition = currentZ;
         xPosition = currentX;
       }else if(speedForward != 0){
@@ -578,80 +573,77 @@ function animate() {
 	
 	// collision detection --> soldier & rocks										
 	for (var i = 0; i < rocks.length; i++) {
-   collision = collisionCheck(bodysMY[0], rocks[i], 1.25);
-   if(collision){
-    if (speedForward != 0 && speedSide != 0) {
-      zPosition = currentZ;
-      xPosition = currentX;
-    }else if(speedForward != 0){
-      zPosition = currentZ;        
-    }else{
-      xPosition = currentX;
+	  collision = collisionCheck(bodysMY[0], rocks[i], 1.25);
+      if(collision){
+        if (speedForward != 0 && speedSide != 0) {
+          zPosition = currentZ;
+          xPosition = currentX;
+        } else if(speedForward != 0) {
+          zPosition = currentZ;        
+        } else {
+          xPosition = currentX;
+        }
+      }
     }
-  }
-}
 
 	// bounds
 	if (Math.abs(xPosition) > 29 || Math.abs(zPosition+6) > 29) {
-    if (speedForward != 0 && speedSide != 0) {
-      zPosition = currentZ;
-      xPosition = currentX;
-    }else if(speedForward != 0){
-      zPosition = currentZ;        
-    }else{
-      xPosition = currentX;
+      if (speedForward != 0 && speedSide != 0) {
+        zPosition = currentZ;
+        xPosition = currentX;
+      } else if (speedForward != 0) {
+        zPosition = currentZ;        
+      } else {
+        xPosition = currentX;
+      }
     }
+    bodysMY[0].setPosition([xPosition,bodysMY[0].position[1],zPosition]);
+
+	// update the game timer
+    if(gameActive)
+      timer += elapsed;
+
   }
-  bodysMY[0].setPosition([xPosition,bodysMY[0].position[1],zPosition]);
-
-	 // update the game timer
-   if(gameActive)
-    timer += elapsed;
-
-}
-lastTime = timeNow;
+  lastTime = timeNow;
 
   // ammo
   if (!ammoActive && timeNow - lastAmmoPickup > ammoSpawnInterval) {
-   spawnAmmo();
-   console.log("spanw ammo");  
- }
+    spawnAmmo();
+    console.log("spawn ammo");  
+  }
+  if (ammoActive && distance([xPosition, zPosition+6], [ammo.position[0], ammo.position[2]]) < 1) {
+    lastAmmoPickup = timeNow;
+    ammoCount += 5;
+    document.getElementById("ammo-count").innerHTML = ammoCount;
+    ammoActive = false;
 
- if (ammoActive && distance([xPosition, zPosition+6], [ammo.position[0], ammo.position[2]]) < 0.75) {
-
-   lastAmmoPickup = timeNow;
-   ammoCount += 5;
-   document.getElementById("ammo-count").innerHTML = ammoCount;
-   ammoActive = false;
-
-   playAmmoPickup();
-
-
- }
+    playAmmoPickup();
+  }
+ 
   // bombs
   if (timeNow - lastSpawn > spawnInterval) {
     if (lastSpawn != 0) 
-     spawnBombs();
-   lastSpawn = timeNow;
- }
- updateBombDirection();
- animateBombs(elapsed);
+      spawnBombs();
+    lastSpawn = timeNow;
+  }
+  updateBombDirection();
+  animateBombs(elapsed);
 
   // bullet
   if (fire) {
-   var angle = degToRad(bulletMesh.bulletRot);
-   bulletMesh.xBulletPosition -= Math.sin(angle)*bulletSpeed;
-   bulletMesh.zBulletPosition -= Math.cos(angle)*(-bulletSpeed);
-   bulletBody.setPosition([bulletMesh.xBulletPosition, 2.25, bulletMesh.zBulletPosition]);
- }
- if (timeNow - lastFire > bulletLifetime) {
-   fire = false;
- }
+    var angle = degToRad(bulletMesh.bulletRot);
+    bulletMesh.xBulletPosition -= Math.sin(angle)*bulletSpeed;
+    bulletMesh.zBulletPosition -= Math.cos(angle)*(-bulletSpeed);
+    bulletBody.setPosition([bulletMesh.xBulletPosition, 2.25, bulletMesh.zBulletPosition]);
+  }
+  if (timeNow - lastFire > bulletLifetime) {
+    fire = false;
+  }
 
 
- checkCollisions();
+  checkCollisions();
 
- updatePhysics();
+  updatePhysics();
 
 }
 
@@ -700,7 +692,11 @@ function removeAllBombs(){
 }
 
 function getSpawnIndex(upTo) {
-  return Math.floor(Math.random() * upTo);
+  var rand = Math.floor(Math.random() * upTo);
+  while (rand == lastSpawnIndex)
+	rand = Math.floor(Math.random() * upTo);
+  lastSpawnIndex = rand;
+  return rand;
 }
 
 // Destroy bomb at index i
@@ -708,8 +704,6 @@ function destroyBomb(i) {
   bombList.splice(i,1);
   meshes.splice(i+2,1);
   playExplosion();
-  console.log(bombList[i].aliveFor);
-
 }
 
 // Update the direction of bombs
@@ -736,6 +730,7 @@ function moveBomb(p1, p2) {
 	return moveVector;
 }
 
+
 // Helper: get distance between point p1 and p2
 function distance(p1, p2) {
 	var x1 = p1[0];
@@ -744,7 +739,6 @@ function distance(p1, p2) {
 	var y2 = p2[1];
 	return Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
 }
-
 
 
 //
@@ -791,6 +785,14 @@ function handleKeys() {
     speedForward = 0;
   }
   
+  if (currentlyPressedKeys[16]) {
+	speedSide *= 1.5;
+	speedForward *= 1.5;
+	sprinting = true;
+  }
+  else
+	sprinting = false;
+
   if (currentlyPressedKeys[32]) {
     // delete bomb that spawned first
     destroyBomb(0);
@@ -805,7 +807,6 @@ function mouseRotation(x,y){
 }
 //get angle
 function angle(a1, a2, b1, b2) {
-
   theta = Math.atan2(b1 - a1, a2 - b2);
   if (theta < 0.0)
     theta += 2*Math.PI
@@ -815,36 +816,37 @@ function angle(a1, a2, b1, b2) {
 
 
 
-function initPhy() {
-  populate();
-}
-
-
-// ?? zdej že useless metoda ??
-/*function addBomb(){
-  var ibomb = bomb
-  ibomb.position = [0,0,-2];
-  ibomb.rotation = [0,0,0];
-  ibomb.size = getOBJSize(ibomb);
-  meshes[meshes.length] = ibomb;
-  bodysMY[bodysMY.length] = new OBJmodel(ibomb.size, ibomb.position, "bomb");
-  
-  return ibomb;
-}*/
-
 function getBombBody(i) {
 	return bodysMY[i+2];
 }
 
 // Add new ammo crate
 function spawnAmmo() {
-  var spawnIndex = getSpawnIndex(ammoSpawnPoints.length);
+  var spawnIndex = ++ammoLastSpawn;
   ammo.position[0] = ammoSpawnPoints[spawnIndex][0];
   ammo.position[1] = 0;
   ammo.position[2] = ammoSpawnPoints[spawnIndex][2];
   ammoActive = true;
 }
 
+
+//
+// inicializacija okolja
+function initPhy() {
+  populate();
+}
+
+//
+// Collision detection
+function checkCollisions(){
+    // Soldier vs Bombs
+  for (var i = 0; i < bombList.length; i++) {
+  //if(bodysMY[0].detectCollision(getBombBody(i)) != null){
+    if (collisionCheck(bodysMY[0], getBombBody(i), 0.75)) {
+      destroyBomb(i); 
+      //Soldier dies
+      playerHP -= 10;
+      document.getElementById("health-soldier").innerHTML = playerHP;
 
 function updatePhysics() {
   var collision, imesh, bodyMY, moveX, moveZ, i = bodysMY.length;
@@ -864,9 +866,8 @@ function updatePhysics() {
 //
 // Collision detection
 function checkCollisions(){
-    // Soldier vs Bombs
+  // Soldier vs Bombs
   for (var i = 0; i < bombList.length; i++) {
-  //if(bodysMY[0].detectCollision(getBombBody(i)) != null){
     if (collisionCheck(bodysMY[0], getBombBody(i), 0.75)) {
       destroyBomb(i); 
       //Soldier dies
@@ -878,7 +879,6 @@ function checkCollisions(){
 
   //House vs Bombs
   for (var j = 0; j < bombList.length; j++) {
-
     if(bodysMY[1].detectCollision(getBombBody(j)) != null) {
       destroyBomb(j);   
       houseHP -= 100;
@@ -886,7 +886,6 @@ function checkCollisions(){
       if (houseHP == 0) {
         gameActive = false;
       }
-
     }
   }
 
@@ -896,21 +895,20 @@ function checkCollisions(){
     if (fire && collisionCheck(bulletBody, getBombBody(j), 0.5)) {
 
 	  fire = false;
-      destroyBomb(j);
-      bombsKilled++;
-	  // določi oceno 	--> če bombice ne uničimo v manj kot 7 sekundah, dobimo samo 10 točk
-	  //				--> če jo uničimo prej kot v 7 sekundah, potem dobimo točke določene po formuli  'score' = 'procent preostalega časa za uničenje bombice' * 100   (score je lahko najmanj 10 in največ 100)
+	  // določi oceno 	--> če bombice ne uničimo v manj kot 10 sekundah (od njenega spawna), dobimo samo 10 točk
+	  //				--> če jo uničimo prej kot v 10 sekundah, potem dobimo točke določene po formuli  'score' = 'procent preostalega časa za uničenje bombice' * 100   (score je lahko najmanj 10 in največ 100)
 	  var score = 10;
-	  if (bombList[j].aliveFor <= 7000)
-		  score = Math.max(10, (1 - (bombList[j].aliveFor/7000)) * 100);
+	  if (bombList[j].aliveFor <= 10000)
+		  score = Math.max(10, (1 - (bombList[j].aliveFor/10000)) * 100);
 	  console.log("score: " + score);
 	  totalScore += score;
-
+	  
+	  bombsKilled++;
+      destroyBomb(j);
     }
   }
   
   //Bullet vs Nature (rocks, trees)
-
   if (fire) {
 	bulletBody.setPosition([bulletBody.position[0],bulletBody.position[1],bulletBody.position[2]-1]);					// spet offseting, tokrat zato ker je metek dvignjen na Y osi, skala pa ni (je na Y=0)
 	for (var j = 0; j < rocks.length; j++) {																			//   --> treba popravit Z os metka, da deluje collision kot je treba tudi če streljamo iz strani
@@ -918,6 +916,7 @@ function checkCollisions(){
         fire = false;
       }
     }
+
 	bulletBody.setPosition([bulletBody.position[0],bulletBody.position[1],bulletBody.position[2]+1]);
   }
 
@@ -935,7 +934,7 @@ function checkCollisions(){
 }
 
 //
-// Moja funkcija za collision detection med telesoma body1 & body2  [primitivna -> gleda samo 2 dimenziji in računa razdaljo med centroma (zato uporabna samo za kvadratne/okorgle objekte)]
+// Funkcija za collision detection med telesoma body1 & body2  [primitivna -> gleda samo 2 dimenziji in računa razdaljo med centroma (zato uporabna samo za kvadratne/okorgle objekte)]
 function collisionCheck(body1, body2, dist) {
 	var originIsPlayer = 0;
 	if (body1.name === "soldier" || body1.name === "bullet")
@@ -943,7 +942,6 @@ function collisionCheck(body1, body2, dist) {
 	var p1 = [body1.position[0], body1.position[2]+originIsPlayer];
 	var p2 = [body2.position[0], body2.position[2]];
 	return distance(p1, p2) < dist;
-
 }
 
 
@@ -979,7 +977,7 @@ function start() {
     if(evt.button != 0)
       return;
     var currTime = new Date().getTime();
-    if ((currTime - lastFire > fireCooldown || lastFire == 0) && ammoCount > 0) {
+    if ((currTime - lastFire > fireCooldown || lastFire == 0) && ammoCount > 0 && !sprinting) {
       lastFire = currTime;
       fire = true;
       ammoCount--;
@@ -987,19 +985,16 @@ function start() {
       bulletMesh.xBulletPosition = xPosition;
       bulletMesh.zBulletPosition = zPosition;
       bulletMesh.bulletRot = rotMouse;
-		// nastavi vrednosti za body, po "kreaciji" novega metka
-		/*bullet.position = [xPosition,0,zPosition];
-		bullet.rotation = rotMouse;
-		bullet.size = getOBJSize(bullet);*/
-		bulletBody = new OBJmodel(getOBJSize(bulletMesh), [xPosition,2.25,zPosition], "bullet");
+	  bulletBody = new OBJmodel(getOBJSize(bulletMesh), [xPosition,2.25,zPosition], "bullet");
 
-   playShot();
- }
- if(ammoCount == 0){
-  playEmptyPickup();
-} 
-}, false
-);
+      playShot();
+    }
+    if(ammoCount == 0) {
+      playEmptyPickup();
+    } 
+  }, false
+  );
+
   
     gl = initGL(canvas);      // Initialize the GL context
 
@@ -1038,11 +1033,11 @@ function start() {
       var intervalID = setInterval(function() {
         if (textureCounter >=targetLoadedTextures && loadedMeshes >=targetLoadedMeshes){          
           if (!gameActive)
-           clearInterval(intervalID);
-         requestAnimationFrame(animate);
-         handleKeys();
-         setTimer(timer);
-         if (timer > endTime) {
+            clearInterval(intervalID);
+        requestAnimationFrame(animate);
+        handleKeys();
+        setTimer(timer);
+        if (timer > endTime || houseHP <= 0 || playerHP <= 0) {
           showEnd();
         }
       }
@@ -1064,9 +1059,12 @@ function restartGame(){
   houseHP = 1000;
   playerHP = 100;
   bombsSpawned = 0;
-
   bombsKilled = 0;
+  totalScore = 0;
+  
   ammoCount = 5;
+  ammoLastSpawn = 0;
+
   xPosition = 0;
   zPosition = 0;
   document.getElementById("health-house").innerHTML = houseHP;
@@ -1089,8 +1087,4 @@ function showEnd(){
 function setTimer(time){
   $("#timer").html(Math.ceil((endTime-timer)/1000));
 }
-//
-// TODO comment:
-// * okolje ni še dokončano
-// * ene par spawnov in poti bombic je že kar uredu, treba še par dodat/dokončat
 
