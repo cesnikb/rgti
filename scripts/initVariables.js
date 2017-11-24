@@ -63,7 +63,7 @@ var isCollision = false;
 var fire=false;
 var lastFire = 0;
 var ammoCount = 5;
-var fireCooldown = 1250;
+var fireCooldown = 1500;
 var bulletLifetime = 1000;
 var xBulletPosition;
 var zBulletPosition;
@@ -77,32 +77,28 @@ var bombSize;
 var bombResponseText;
 
 var lastSpawn = 0;
-var spawnInterval = 2000;
+var spawnInterval = 3000;
 var bombSpawnPoints = [
 	[10,0,-23],
-	[-20,0,-20],
-	[0,0,-25],
-	//[-15,0,-20],
-	[-24,0,-4],
-	[10,0,29]];
+	[-10,0,-23],
+	[15,0,-20],
+	[-15,0,-20]];
 var bombMoveProgram = [
-	[[18,-18], [24, -12], [16, -8], [24, -2], [10, 10]],				// zgoraj desno
-	[[-10,-12], [-18, -8], [-14, 0], [-5, -3], [6, 10]],				// zgoraj levo
-	[[5, -20], [-2, -15], [0, -9], [7, -5], [10, 10]],				// še bolj zgoraj desno
-	//[[-4, -8], [-3, -6], [-12, -4], [10, 10]],
-	[[-27, 5], [-17, 10], [-13, 8], [-10, 4], [10, 10]],				// skrajno levo				
-	[[-5, 28], [-12, 22], [-16, 18], [-5, 15], [-7, 7], [10, 10]]];		// spodaj levo
+	[[8,0], [6, 0], [14, 0], [10, 10]],
+	[[-8,0], [-6, 0], [-14, 0], [10, 10]],
+	[[4, -8], [3, -6], [12, -4], [10, 10]],
+	[[-4, -8], [-3, -6], [-12, -4], [10, 10]]];
 	
 //
 // Ammo
 var lastAmmoPickup = 0;
-var ammoSpawnInterval = 3000;
+var ammoSpawnInterval = 10000;
 var ammoActive = true;
 var ammoSpawnPoints = [
-	[20,0,-2],
-	[-14,0,-10],
-	[-18,0,18],
-	[15,0,22]];
+	[15,0,-5],
+	[-10,0,0],
+	[5,0,-12],
+	[-5,0,-10]];
 //
 // Nature
 var rocks;
@@ -115,10 +111,7 @@ var timer = 0;
 var houseHP = 1000;
 var playerHP = 100;
 var bombsKilled = 0;
-var bombsSpawned = 0;
 var gameActive = true;
-var totalScore = 0;
-
 var endTime = 30000;
 
 

@@ -611,9 +611,7 @@ lastTime = timeNow;
    spawnAmmo();
    console.log("spanw ammo");  
  }
-
- if (ammoActive && distance([xPosition, zPosition+6], [ammo.position[0], ammo.position[2]]) < 0.75) {
-
+ if (ammoActive && distance([xPosition, zPosition+6], [ammo.position[0], ammo.position[2]]) < 0.5) {
    lastAmmoPickup = timeNow;
    ammoCount += 5;
    document.getElementById("ammo-count").innerHTML = ammoCount;
@@ -656,7 +654,6 @@ function animateBombs(elapsed) {
 	for (var i = 0; i < bombList.length; i++) {
 		bombList[i].position[0] += bombSpeed * elapsed * bombList[i].direction[0];
 		bombList[i].position[2] += bombSpeed * elapsed * bombList[i].direction[1];
-		bombList[i].aliveFor += elapsed;
 		bodysMY[i+2].setPosition(bombList[i].position);
 	}
 }
@@ -672,18 +669,8 @@ function spawnBombs() {
   bombList[tempIdx].size = bombSize;
   bombList[tempIdx].program = bombMoveProgram[spawnIndex];
   bombList[tempIdx].currStep = 0;
-  bombList[tempIdx].aliveFor = 0;
   meshes[meshes.length] = bombList[tempIdx];
   bodysMY[bodysMY.length] = new OBJmodel(bombList[tempIdx].size, bombList[tempIdx].position, "bomb");
-  bombsSpawned++;
-}
-
-function removeAllBombs(){
-  for (var i = 0; i < bombList.length; i++) {
-    bombList.splice(i,1);
-    meshes.splice(i+2,1);
-    bodysMY.splice(i+2,1);
-  }
 }
 
 function removeAllBombs(){
@@ -703,7 +690,6 @@ function destroyBomb(i) {
   bombList.splice(i,1);
   meshes.splice(i+2,1);
   playExplosion();
-  console.log(bombList[i].aliveFor);
 
 }
 
@@ -717,6 +703,8 @@ function updateBombDirection() {
 		var distToNextStep = distance([curr.position[0], curr.position[2]], curr.program[curr.currStep]);
 		if (distToNextStep < 0.25)
 			meshes[i].currStep++;
+		if (meshes[i].currStep >= 4)
+			destroyBomb(i-2);
 	}
 }
 //Function for moving bomb from point a to point b
@@ -816,7 +804,7 @@ function initPhy() {
 
 
 // ?? zdej že useless metoda ??
-/*function addBomb(){
+function addBomb(){
   var ibomb = bomb
   ibomb.position = [0,0,-2];
   ibomb.rotation = [0,0,0];
@@ -825,7 +813,7 @@ function initPhy() {
   bodysMY[bodysMY.length] = new OBJmodel(ibomb.size, ibomb.position, "bomb");
   
   return ibomb;
-}*/
+}
 
 function getBombBody(i) {
 	return bodysMY[i+2];
@@ -835,8 +823,7 @@ function getBombBody(i) {
 function spawnAmmo() {
   var spawnIndex = getSpawnIndex(ammoSpawnPoints.length);
   ammo.position[0] = ammoSpawnPoints[spawnIndex][0];
-  ammo.position[1] = 0;
-  ammo.position[2] = ammoSpawnPoints[spawnIndex][2];
+  ammo.position[1] = ammoSpawnPoints[spawnIndex][1];
   ammoActive = true;
 }
 
@@ -860,11 +847,11 @@ function updatePhysics() {
 // Collision detection
 function checkCollisions(){
     // Soldier vs Bombs
-  for (var i = 0; i < bombList.length; i++) {
-  //if(bodysMY[0].detectCollision(getBombBody(i)) != null){
-    if (collisionCheck(bodysMY[0], getBombBody(i), 0.75)) {
-      destroyBomb(i); 
-      //Soldier dies
+    for (var i = 0; i < bombList.length; i++) {
+    //if(bodysMY[0].detectCollision(getBombBody(i)) != null){
+     if (collisionCheck(bodysMY[0], getBombBody(i), 0.75)) {
+       destroyBomb(i); 
+      //Soldier dies     --> TODO: soldier HP <--  
       playerHP -= 10;
       document.getElementById("health-soldier").innerHTML = playerHP;
 
@@ -874,15 +861,14 @@ function checkCollisions(){
   //House vs Bombs
   for (var j = 0; j < bombList.length; j++) {
 
-    if(bodysMY[1].detectCollision(getBombBody(j)) != null) {
-      destroyBomb(j);   
-      houseHP -= 100;
-      document.getElementById("health-house").innerHTML = houseHP
-      if (houseHP == 0) {
-        document.getElementById("game-status").innerHTML = "GAME OVER!";
-        gameActive = false;
-      }
-
+    if(bodysMY[1].detectCollision(getBombBody(j)) != null){
+	//if (collisionCheck(bodysMY[1], getBombBody(j), 5)){
+    destroyBomb(j);   
+    houseHP -= 100;
+    document.getElementById("health-house").innerHTML = houseHP
+    if (houseHP == 0) {
+      document.getElementById("game-status").innerHTML = "GAME OVER!";
+      gameActive = false;
     }
   }
 }
@@ -890,44 +876,20 @@ function checkCollisions(){
   //Bullet vs Bombs
   for (var j = 0; j < bombList.length; j++) {
     if (fire && collisionCheck(bulletBody, getBombBody(j), 0.5)) {
-
-	  fire = false;
       destroyBomb(j);
       bombsKilled++;
-	  // določi oceno 	--> če bombice ne uničimo v manj kot 7 sekundah, dobimo samo 10 točk
-	  //				--> če jo uničimo prej kot v 7 sekundah, potem dobimo točke določene po formuli  'score' = 'procent preostalega časa za uničenje bombice' * 100   (score je lahko najmanj 10 in največ 100)
-	  var score = 10;
-	  if (bombList[j].aliveFor <= 7000)
-		  score = Math.max(10, (1 - (bombList[j].aliveFor/7000)) * 100);
-	  console.log("score: " + score);
-	  totalScore += score;
       document.getElementById("bomb-counter").innerHTML = "Bombs destroyed: " + bombsKilled;
-
+      fire = false;
     }
   }
   
   //Bullet vs Nature (rocks, trees)
-
-  if (fire) {
-	bulletBody.setPosition([bulletBody.position[0],bulletBody.position[1],bulletBody.position[2]-1]);					// spet offseting, tokrat zato ker je metek dvignjen na Y osi, skala pa ni (je na Y=0)
-	for (var j = 0; j < rocks.length; j++) {																			//   --> treba popravit Z os metka, da deluje collision kot je treba tudi če streljamo iz strani
-      if (collisionCheck(bulletBody, rocks[j], 1.25)) {
-        fire = false;
-      }
-    }
-	bulletBody.setPosition([bulletBody.position[0],bulletBody.position[1],bulletBody.position[2]+1]);
-  }
-
+  for (var j = 0; j < rocks.length; j++) {
+     // --> TODO <--
+   }
 
   //Bullet vs House
-  if (fire) {
-	  var io = bulletBody;
-	  io.setPosition([bulletBody.position[0],bulletBody.position[1],bulletBody.position[2]+7.5]);						// standard offseting zaradi hiše
-	  if (bodysMY[1].detectCollision(bulletBody) != null) {
-		fire = false;
-	  }
-	  io.setPosition([io.position[0],io.position[1],io.position[2]-7.5]);
-  }
+  // --> TODO <--
   
 }
 
@@ -1055,12 +1017,8 @@ function restartGame(){
   removeAllBombs();
   //Restart position, counters, hide GAME OVER text
   timer = 0;
-
-  lastTime = 0;
   houseHP = 1000;
   playerHP = 100;
-  bombsSpawned = 0;
-
   bombsKilled = 0;
   ammoCount = 5;
   xPosition = 0;
@@ -1069,22 +1027,19 @@ function restartGame(){
   document.getElementById("health-soldier").innerHTML = playerHP;
   document.getElementById("ammo-count").innerHTML = ammoCount;
   start();
-}
 
+  //TODO
+  // Pozicije bombic zacnejo ob resitiranju igre na neki cudni poziciji
+  // Timer se začne odštevat preden kliknemo na Restart
+  // Nek sistem bi bilo treba za končen skor računat, na podlagi healtha solderja, hiše in kolko bombic si zadel
+}
 function showEnd(){
   $("#overlay-gameover").show();
   $("#restart-wrapper").show();
   gameActive = false;
   playEndingSound();
-  document.getElementById("game-status").innerHTML = "Total score: " + Math.round(totalScore);
-
 }
 
 function setTimer(time){
   $("#timer").html(Math.ceil((endTime-timer)/1000));
 }
-//
-// TODO comment:
-// * okolje ni še dokončano
-// * ene par spawnov in poti bombic je že kar uredu, treba še par dodat/dokončat
-

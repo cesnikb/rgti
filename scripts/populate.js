@@ -16,8 +16,7 @@ function populate() {
   bodysMY[1] = new OBJmodel(house.size, house.position, "house");
 
   // ammo
-
-  ammo.position = ammoSpawnPoints[getSpawnIndex(ammoSpawnPoints.length)];
+  ammo.position = [10,0,-10];
   ammo.rotation = [0,0,0];
   ammo.size = getOBJSize(ammo);
 
@@ -34,17 +33,13 @@ function populate() {
   var rock8 = importOBJ(rockResponseText);
   var rock9 = importOBJ(rockResponseText);
   var rock10 = importOBJ(rockResponseText);
-  var rock11 = importOBJ(rockResponseText);
-  var rock12 = importOBJ(rockResponseText);
-  rock1.position = [12,0,-6];
+  rock1.position = [10,0,-4];
   // spodaj levo
   rock2.position = [-20,0,3];
-  rock3.position = [-15,0,12];
-  rock4.position = [2,0,25];
+  rock3.position = [-16,0,12];
+  rock4.position = [2,0,27];
   rock5.position = [-22,0,22];
-  rock6.position = [-6,0,18];
-  rock12.position = [13,0,27];
-
+  rock6.position = [-10,0,18];
   zeros = [0, 0, 0];
   rock1.rotation = zeros;
   rock2.rotation = zeros;
@@ -52,21 +47,16 @@ function populate() {
   rock4.rotation = zeros;
   rock5.rotation = zeros;
   rock6.rotation = zeros;
-
-  rock12.rotation = zeros;
   // zgoraj levo
   rock7.position = [-5,0,-10];
-  rock8.position = [2,0,-13];
-  rock9.position = [-20,0,-18];
-  rock10.position = [-14,0,-4];
+  rock8.position = [0,0,-12];
+  rock9.position = [-15,0,-22];
   rock7.rotation = zeros;
   rock8.rotation = zeros;
   rock9.rotation = zeros;
-  rock10.rotation = zeros;
   //desno
-  rock11.position = [22,0,-22];
-  rock11.rotation = zeros;
-
+  rock10.position = [22,0,-22];
+  rock10.rotation = zeros;
   rock1.size = rockSize;
   rock2.size = rockSize;
   rock3.size = rockSize;
@@ -77,9 +67,6 @@ function populate() {
   rock8.size = rockSize;
   rock9.size = rockSize;
   rock10.size = rockSize;
-  rock11.size = rockSize;
-  rock12.size = rockSize;
-
   rock1 = new OBJmodel(rock1.size, rock1.position, "rock");
   rock2 = new OBJmodel(rock2.size, rock2.position, "rock");
   rock3 = new OBJmodel(rock3.size, rock3.position, "rock");
@@ -90,9 +77,6 @@ function populate() {
   rock8 = new OBJmodel(rockSize, rock8.position, "rock");
   rock9 = new OBJmodel(rockSize, rock9.position, "rock");
   rock10 = new OBJmodel(rockSize, rock10.position, "rock");
-  rock11 = new OBJmodel(rockSize, rock11.position, "rock");
-  rock12 = new OBJmodel(rockSize, rock12.position, "rock");
-
 
   rocks[0] = rock1;
   rocks[1] = rock2;
@@ -104,8 +88,6 @@ function populate() {
   rocks[7] = rock8;
   rocks[8] = rock9;
   rocks[9] = rock10;
-  rocks[10] = rock11;
-  rocks[11] = rock12;
 
 
 }
